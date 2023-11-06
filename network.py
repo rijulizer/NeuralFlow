@@ -5,6 +5,9 @@ class Network:
         self.loss_prime = None
 
     def add(self,layer):
+        """
+        Adds a layer to the model
+        """
         self.layers.append(layer)
     
     def use_loss(self, loss, loss_prime):
@@ -12,7 +15,6 @@ class Network:
         self.loss_prime = loss_prime
     
     def predict(self, input_data):
-        
         result = []
 
         # iterate through data points
@@ -25,8 +27,8 @@ class Network:
             result.append(output)
         return result
     
-    def fit(self, x_train, y_train, epochs, learning_rate):
-
+    def fit(self, x_train, y_train, epochs, learning_rate, print_freq):
+        self.history = []
         for i in range(epochs):
             # print(f'epoch - {i} ')
             forward_err = 0
@@ -37,15 +39,21 @@ class Network:
                 for layer in self.layers:
                     output = layer.forward(output)
                 
+                # calculate forward error to track model training
                 forward_err += self.loss(y_train[j], output)
 
                 # backward propagation
                 backward_error = self.loss_prime(y_train[j], output)
                 # print(f'last layer error{backward_error}')
+                # iterate layers backwards 
                 for layer in reversed(self.layers):
                     backward_error = layer.backward_propagation(backward_error, learning_rate)
                     # print(f'at layer {layer}, backward error -> {backward_error}')
-            if i % 10 ==0:
+            forward_err /= len(x_train)
+            self.history.append(forward_err)
 
-                forward_err /= len(x_train)
+            if i % print_freq == 0:
                 print(f'epoch {i+1}/{epochs}  error ={forward_err}')
+        
+        return self.history
+            
